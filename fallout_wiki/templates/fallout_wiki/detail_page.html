@@ -1,79 +1,78 @@
 {% extends 'fallout_wiki/base.html' %}
 {% load static %}
 
-{% block title %}{{ display_name }} | 辐射4百科{% endblock %}
+{% block title %}{{ display_name }} | Pip-Boy 3000 Mk IV{% endblock %}
 
 {% block content %}
-<div class="card">
+<div class="card p-2 p-md-4">
     {% if main_image_url %}
-        <div class="blog-header" style="background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.7)), url('{{ main_image_url }}');">
-            <h1>{{ display_name }}</h1>
+        <div class="text-center mb-4">
+            <img src="{{ main_image_url }}" class="img-fluid rounded" style="max-height: 400px; border: 2px solid var(--pip-boy-green);" alt="{{ display_name }}"/>
         </div>
     {% endif %}
 
-    <div class="card-body p-lg-5">
-        
-        <!-- Additional Images Section -->
-        {% if additional_image_urls %}
-        <div class="row mb-5">
-            {% for img_url in additional_image_urls %}
-                <div class="col-md-4 mb-3">
-                    <img src="{{ img_url }}" class="img-fluid rounded shadow-1-strong" alt="Additional Image" />
-                </div>
-            {% endfor %}
-        </div>
-        {% endif %}
+    <h1 class="text-center mb-4">{{ display_name }}</h1>
+    <p class="text-center text-muted">{{ model_name_singular }}</p>
 
-        <!-- Long Text Sections (Explanation, Lore, etc.) -->
-        {% for field in fields %}
-            {% if field.is_long_text %}
-                <div class="mb-5">
-                    <h2 class="mb-4">{{ field.name }}</h2>
-                    <p style="line-height: 1.8; white-space: pre-wrap;">{{ field.value }}</p>
-                </div>
-                <hr class="my-5" />
-            {% endif %}
+    <hr style="border-color: var(--pip-boy-green);" />
+
+    <!-- Additional Images Section -->
+    {% if additional_image_urls %}
+    <div class="row mb-4">
+        {% for img_url in additional_image_urls %}
+            <div class="col-md-4 mb-3">
+                <img src="{{ img_url }}" class="img-fluid rounded" style="border: 1px solid var(--pip-boy-green);" alt="Additional Image" />
+            </div>
         {% endfor %}
+    </div>
+    <hr style="border-color: var(--pip-boy-green);" />
+    {% endif %}
 
-        <h2 class="mb-4">数据详情 <small class="text-muted fs-5">({{ model_name_singular }})</small></h2>
+    <!-- Long Text Sections (Explanation, Lore, etc.) -->
+    {% for field in fields %}
+        {% if field.is_long_text %}
+            <div class="mb-4">
+                <h3 class="mb-3">{{ field.name }}</h3>
+                <p style="line-height: 1.7; white-space: pre-wrap; font-size: 1.1rem;">{{ field.value }}</p>
+            </div>
+        {% endif %}
+    {% endfor %}
 
-        <div class="row">
-            {% for field in fields %}
-                {% if not field.is_long_text %}
-                    <div class="col-md-6 mb-4">
-                        <div class="d-flex align-items-start">
-                            <div class="me-3 text-muted" style="min-width: 100px;">
-                                <strong class="text-light">{{ field.name }}</strong>
-                            </div>
-                            <div>
-                                {% if field.is_wiki_link %}
-                                    <!-- Wiki Link Preview Card -->
-                                    <a href="{{ field.value }}" target="_blank" class="card hover-shadow" style="max-width: 350px; text-decoration: none;">
-                                        <div class="bg-image hover-overlay">
-                                            <img src="{{ main_image_url }}" class="img-fluid" />
-                                        </div>
-                                        <div class="card-body py-2 px-3" style="background-color: #3e3e3e;">
-                                            <p class="card-text text-light small mb-1">{{ display_name }} Wiki</p>
-                                            <p class="card-text text-muted small text-truncate">{{ field.value }}</p>
-                                        </div>
-                                    </a>
-                                {% else %}
-                                    {{ field.value }}
-                                {% endif %}
-                            </div>
+    <hr style="border-color: var(--pip-boy-green);" />
+    
+    <h3 class="mb-4">数据详情</h3>
+
+    <div class="row">
+        {% for field in fields %}
+            {% if not field.is_long_text %}
+                <div class="col-md-6 mb-3">
+                    <div class="d-flex align-items-start">
+                        <div class="me-3" style="min-width: 120px;">
+                            <strong>{{ field.name }}:</strong>
+                        </div>
+                        <div class="flex-grow-1">
+                            {% if field.is_wiki_link %}
+                                <!-- Wiki Link Preview Card -->
+                                <a href="{{ field.value }}" target="_blank" class="text-decoration-none d-block p-2" style="border: 1px solid var(--pip-boy-green); border-radius: 5px;">
+                                    <p class="mb-0">{{ display_name }} Wiki</p>
+                                    <p class="mb-0 small text-truncate">{{ field.value }}</p>
+                                </a>
+                            {% else %}
+                                {{ field.value }}
+                            {% endif %}
                         </div>
                     </div>
-                {% endif %}
-            {% endfor %}
-        </div>
-        
-        <hr class="my-5" />
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+    
+    <hr class="my-4" style="border-color: var(--pip-boy-green);" />
 
-        <div class="text-center">
-            <a href="{% url 'fallout_wiki:wiki_index' %}" class="btn btn-outline-light btn-rounded">
-                <i class="fas fa-arrow-left me-2"></i> 返回主列表
-            </a>
-        </div>
+    <div class="text-center">
+        <a href="{% url 'fallout_wiki:wiki_index' %}" class="btn" style="border: 1px solid var(--pip-boy-green);">
+            &lt;&lt; 返回主列表
+        </a>
     </div>
 </div>
 {% endblock %}

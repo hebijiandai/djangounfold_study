@@ -1,17 +1,12 @@
 from django.db import models
 
-class Region(models.Model):
-    class RadiationLevel(models.TextChoices):
-        NONE = 'NONE', '无'
-        LOW = 'LOW', '低'
-        MEDIUM = 'MEDIUM', '中'
-        HIGH = 'HIGH', '高'
-        SEVERE = 'SEVERE', '严重'
+# Final models with all fields translated and wiki links added.
 
+class Region(models.Model):
     name = models.CharField("区域名称", max_length=100, unique=True)
-    description = models.TextField("描述", blank=True)
+    description = models.TextField("描述", blank=True, null=True)
     map_image_url = models.URLField("地图图片链接", max_length=4096, blank=True)
-    radiation_level = models.CharField("辐射水平", max_length=10, choices=RadiationLevel.choices, default=RadiationLevel.LOW)
+    radiation_level = models.CharField("辐射水平", max_length=100, blank=True)
     weather_pattern = models.CharField("天气模式", max_length=100, blank=True)
     discovered_date = models.CharField("发现日期", max_length=50, blank=True)
     primary_threat = models.CharField("主要威胁", max_length=100, blank=True)
@@ -23,35 +18,31 @@ class Region(models.Model):
     connectivity = models.CharField("连通性", max_length=100, blank=True)
     lore_entry = models.TextField("背景故事", blank=True)
     map_coordinates = models.CharField("地图坐标", max_length=10, blank=True)
-    explanation = models.TextField("说明", blank=True, help_text="Detailed background story, at least 500 characters.")
+    explanation = models.TextField("说明", blank=True)
+    avg_temperature_celsius = models.IntegerField("平均温度(C)", default=20)
+    flora_density_level = models.CharField("植物密度", max_length=100, blank=True)
+    fauna_type_dominant = models.CharField("主要动物群", max_length=100, blank=True)
+    water_toxicity_rating = models.CharField("水源毒性", max_length=100, blank=True)
+    soil_fertility_index = models.IntegerField("土壤肥沃指数", default=0)
+    settlement_capacity_max = models.IntegerField("聚落容量", default=0)
+    travel_difficulty_mode = models.CharField("旅行难度", max_length=100, blank=True)
+    background_music_track_ost = models.CharField("背景音乐", max_length=100, blank=True)
+    day_night_cycle_effect_note = models.CharField("昼夜循环说明", max_length=100, blank=True)
+    survival_tips_guide = models.TextField("生存技巧", blank=True)
+    wiki_url = models.URLField("Wiki链接", blank=True, null=True)
 
-    def __str__(self):
-        return self.name
-    
-    class Meta:
-        verbose_name = "区域"
-        verbose_name_plural = "区域"
+    def __str__(self): return self.name
+    class Meta: verbose_name = "区域"; verbose_name_plural = "区域"
 
 class Faction(models.Model):
-    class TechLevel(models.TextChoices):
-        SCAVENGED = 'SCAVENGED', '拾荒'
-        PRE_WAR = 'PRE_WAR', '战前'
-        ADVANCED = 'ADVANCED', '先进'
-        CUTTING_EDGE = 'CUTTING_EDGE', '尖端'
-
-    class Hostility(models.TextChoices):
-        FRIENDLY = 'FRIENDLY', '友好'
-        NEUTRAL = 'NEUTRAL', '中立'
-        HOSTILE = 'HOSTILE', '敌对'
-
     name = models.CharField("派系名称", max_length=100, unique=True)
-    ideology = models.TextField("意识形态", blank=True)
+    ideology = models.TextField("意识形态", blank=True, null=True)
     leader = models.CharField("领袖", max_length=100, blank=True)
     logo_url = models.URLField("派系Logo链接", max_length=4096, blank=True)
     is_joinable = models.BooleanField("可否加入", default=False)
-    tech_level = models.CharField("科技水平", max_length=20, choices=TechLevel.choices, default=TechLevel.SCAVENGED)
-    hostility_status = models.CharField("敌对状态", max_length=20, choices=Hostility.choices, default=Hostility.NEUTRAL)
-    wiki_url = models.URLField("Wiki链接", blank=True)
+    tech_level = models.CharField("科技水平", max_length=100, blank=True)
+    hostility_status = models.CharField("敌对状态", max_length=100, blank=True)
+    wiki_url = models.URLField("Wiki链接", blank=True, null=True)
     founding_year = models.IntegerField("成立年份", null=True, blank=True)
     recruitment_policy = models.CharField("招募政策", max_length=100, blank=True)
     base_of_operations = models.CharField("行动基地", max_length=100, blank=True)
@@ -62,36 +53,33 @@ class Faction(models.Model):
     notable_members = models.TextField("知名成员", blank=True)
     player_rep_impact = models.TextField("玩家声望影响", blank=True)
     quote = models.TextField("标志性引言", blank=True)
-    explanation = models.TextField("说明", blank=True, help_text="Detailed background story, at least 500 characters.")
+    explanation = models.TextField("说明", blank=True)
     image_url_2 = models.URLField("附加图片2链接", max_length=4096, blank=True)
     image_url_3 = models.URLField("附加图片3链接", max_length=4096, blank=True)
     image_url_4 = models.URLField("附加图片4链接", max_length=4096, blank=True)
+    primary_color_hex = models.CharField("主色调", max_length=7, blank=True)
+    anthem_song_title = models.CharField("颂歌名称", max_length=100, blank=True)
+    signature_weapon_type = models.CharField("标志性武器", max_length=100, blank=True)
+    armor_style_desc = models.CharField("护甲风格", max_length=100, blank=True)
+    view_on_synths_stance = models.CharField("对合成人立场", max_length=100, blank=True)
+    view_on_ghouls_stance = models.CharField("对尸鬼立场", max_length=100, blank=True)
+    trade_goods_specialty = models.CharField("贸易特产", max_length=100, blank=True)
+    rank_structure_list = models.TextField("阶级结构", blank=True)
+    key_territories_list = models.TextField("关键领土", blank=True)
+    historical_battle_ref = models.CharField("历史性战役", max_length=100, blank=True)
 
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        verbose_name = "派系"
-        verbose_name_plural = "派系"
+    def __str__(self): return self.name
+    class Meta: verbose_name = "派系"; verbose_name_plural = "派系"
 
 class Location(models.Model):
-    class LocationType(models.TextChoices):
-        EXTERIOR = 'EXT', '外部'
-        INTERIOR = 'INT', '内部'
-        DUNGEON = 'DGN', '地下城'
-        SETTLEMENT = 'SET', '聚落'
-        VAULT = 'VLT', '避难所'
-        LANDMARK = 'LMK', '地标'
-        TEST_CELL = 'TEST', '测试单元'
-
-    code = models.CharField("地点代码", max_length=100, unique=True)
+    code = models.CharField("地点代码", max_length=100)
     name_cn = models.CharField("中文名称", max_length=255)
     notes = models.CharField("原始备注", max_length=255, blank=True)
-    region = models.ForeignKey(Region, verbose_name="所属区域", on_delete=models.SET_NULL, null=True, blank=True, related_name="locations")
-    controlling_faction = models.ForeignKey(Faction, verbose_name="控制派系", on_delete=models.SET_NULL, null=True, blank=True, related_name="controlled_locations")
+    region = models.ForeignKey(Region, verbose_name="所属区域", on_delete=models.SET_NULL, null=True, blank=True)
+    controlling_faction = models.ForeignKey(Faction, verbose_name="控制派系", on_delete=models.SET_NULL, null=True, blank=True)
     parent_location_group = models.CharField("地点分组", max_length=255, blank=True)
-    location_type = models.CharField("地点类型", max_length=10, choices=LocationType.choices, default=LocationType.LANDMARK)
-    description = models.TextField("描述", blank=True)
+    location_type = models.CharField("地点类型", max_length=10, blank=True)
+    description = models.TextField("描述", blank=True, null=True)
     is_settlement = models.BooleanField("可否作为聚落", default=False)
     has_workbench = models.BooleanField("有无工房", default=False)
     is_cleared = models.BooleanField("是否已肃清", default=False)
@@ -108,18 +96,52 @@ class Location(models.Model):
     has_chemistry_station = models.BooleanField("有无化学工作台", default=False)
     is_underwater = models.BooleanField("是否水下", default=False)
     access_requires = models.CharField("进入需求", max_length=100, blank=True)
-    explanation = models.TextField("说明", blank=True, help_text="Detailed background story.")
-    
-    # New fields from CSV
+    explanation = models.TextField("说明", blank=True)
     location_wiki_url = models.URLField("地点Wiki链接", blank=True)
     atmosphere_lore = models.TextField("深度档案", blank=True)
     visuals_desc = models.TextField("视觉分镜", blank=True)
+    radiation_level_status = models.CharField("辐射等级状态", max_length=100, blank=True)
+    danger_rating_scale = models.IntegerField("危险等级", default=0)
+    min_player_level_req = models.IntegerField("最低玩家等级", default=1)
+    resource_yield_type = models.CharField("资源产出类型", max_length=100, blank=True)
+    hidden_secrets_hint = models.TextField("隐藏秘密提示", blank=True)
+    bobblehead_location = models.CharField("摇头娃娃位置", max_length=100, blank=True)
+    magazine_issue = models.CharField("杂志期刊", max_length=100, blank=True)
+    associated_achievement_id = models.CharField("关联成就ID", max_length=100, blank=True)
+    last_visited_date_log = models.CharField("上次访问日期", max_length=100, blank=True)
+    lore_history_fragment_text = models.TextField("历史背景片段", blank=True)
 
-    
-    class Meta:
-        ordering = ['region', 'parent_location_group', 'name_cn']
-        verbose_name = "地点"
-        verbose_name_plural = "地点"
+    def __str__(self): return self.name_cn
+    class Meta: verbose_name = "地点"; verbose_name_plural = "地点"
 
-    def __str__(self):
-        return f"{self.name_cn} ({self.code})"
+class Creature(models.Model):
+    name = models.CharField("生物名称", max_length=100)
+    mutation_origin = models.CharField("变异起源", max_length=100, blank=True)
+    weakness_type = models.CharField("弱点类型", max_length=100, blank=True)
+    drop_loot_table = models.TextField("掉落表", blank=True)
+    aggression_level_rating = models.CharField("攻击性评级", max_length=100, blank=True)
+    habitat_zone = models.CharField("栖息区域", max_length=100, blank=True)
+    size_category_scale = models.CharField("体型大小", max_length=100, blank=True)
+    attack_pattern_style = models.CharField("攻击模式", max_length=100, blank=True)
+    lore_description_text = models.TextField("背景描述", blank=True)
+    image_url_ref = models.URLField("图片链接", max_length=4096, blank=True, null=True)
+    wiki_url = models.URLField("Wiki链接", blank=True, null=True)
+
+    def __str__(self): return self.name
+    class Meta: verbose_name = "生物"; verbose_name_plural = "生物"
+
+class Consumable(models.Model):
+    name = models.CharField("消耗品名称", max_length=100)
+    effect_description_text = models.TextField("效果描述", blank=True)
+    addiction_chance_pct = models.IntegerField("成瘾几率(%)", default=0)
+    value_caps_cost = models.IntegerField("价值（瓶盖）", default=0)
+    weight_lbs = models.FloatField("重量(磅)", default=0.0)
+    crafting_recipe_components = models.TextField("制作配方", blank=True)
+    rarity_level = models.CharField("稀有度", max_length=100, blank=True)
+    duration_seconds = models.IntegerField("持续时间（秒）", default=0)
+    side_effects_note = models.TextField("副作用", blank=True)
+    lore_description_text = models.TextField("背景描述", blank=True)
+    wiki_url = models.URLField("Wiki链接", blank=True, null=True)
+
+    def __str__(self): return self.name
+    class Meta: verbose_name = "消耗品"; verbose_name_plural = "消耗品"

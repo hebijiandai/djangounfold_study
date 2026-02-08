@@ -3,84 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}辐射4百科{% endblock %}</title>
-    <!-- Font Awesome -->
-    <link
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
-    rel="stylesheet"
-    />
+    <title>{% block title %}Pip-Boy 3000 Mk IV{% endblock %}</title>
     <!-- Google Fonts -->
-    <link
-    href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap"
-    rel="stylesheet"
-    />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <!-- MDB -->
     <link
     href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/7.3.2/mdb.min.css"
     rel="stylesheet"
     />
     <style>
+        :root {
+            --pip-boy-green: #2dc937;
+            --pip-boy-bg: #1a2b1a;
+            --pip-boy-bg-darker: #101c10;
+        }
         body {
-            background-color: #1a1a1a;
-            color: #c7c7c7;
+            font-family: 'VT323', monospace;
+            background-color: #000;
+            color: var(--pip-boy-green);
+            font-size: 1.25rem;
+            text-shadow: 0 0 5px var(--pip-boy-green);
+        }
+        .scan-line {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background: linear-gradient(to bottom, rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 4px, 6px 100%;
+            z-index: 9999;
+            animation: scan 7.5s linear infinite;
+        }
+        @keyframes scan {
+            from { background-position-y: 0; }
+            to { background-position-y: 100vh; }
+        }
+        main {
+            border: 2px solid var(--pip-boy-green);
+            border-radius: 10px;
+            padding: 1rem;
+            background-color: var(--pip-boy-bg);
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.7);
         }
         .navbar, .card, .nav-tabs .nav-link, .list-group-item {
-            background-color: #2c2c2c !important;
-            color: #c7c7c7 !important;
+            background-color: transparent !important;
+            color: var(--pip-boy-green) !important;
+            border-color: var(--pip-boy-green) !important;
         }
         .nav-tabs .nav-link.active {
-            background-color: #3e3e3e !important;
-            border-color: #4f4f4f;
-            color: #fff !important;
-        }
-        .list-group-item:hover {
-            background-color: #3a3a3a !important;
+            background-color: var(--pip-boy-green) !important;
+            color: var(--pip-boy-bg-darker) !important;
+            text-shadow: none;
         }
         a {
-            color: #4b9fec;
+            color: var(--pip-boy-green);
         }
         a:hover {
-            color: #8bc3fc;
-        }
-        .card-title {
             color: #fff;
         }
-        .blog-header {
-            background-size: cover;
-            background-position: center;
-            height: 40vh;
-            display: flex;
-            align-items: flex-end;
-            padding: 2rem;
-            border-radius: .5rem;
-            margin-bottom: 2rem;
+        .card {
+            border: 2px solid var(--pip-boy-green);
         }
-        .blog-header h1 {
-            color: white;
-            font-weight: 700;
-            text-shadow: 2px 2px 8px rgba(0,0,0,0.8);
+        .card-title, h1, h2, h3, h4, h5 { color: var(--pip-boy-green); }
+        .list-group-item {
+            border-left: none; border-right: none;
         }
+        .list-group-item:first-child { border-top: none; }
+        .list-group-item:last-child { border-bottom: none; }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="{% url 'fallout_wiki:wiki_index' %}">
-                <i class="fas fa-atom me-2"></i>
-                辐射4 百科
-            </a>
-        </div>
-    </nav>
+    <div class="scan-line"></div>
 
     <main class="container mt-4">
+        {% if request.resolver_match.view_name == 'fallout_wiki:wiki_detail' %}
+            <div class="mb-3">
+                <a href="{% url 'fallout_wiki:wiki_index' %}" class="btn" style="border: 1px solid var(--pip-boy-green); color: var(--pip-boy-green);">
+                    &lt;&lt; 返回主列表
+                </a>
+            </div>
+        {% endif %}
+
         {% block content %}{% endblock %}
     </main>
-
-    <footer class="text-center text-lg-start mt-4" style="background-color: #2c2c2c;">
-        <div class="text-center p-3" style="color: #888;">
-            © 2026 辐射4百科 | 由Django驱动
-        </div>
-    </footer>
 
     <!-- MDB -->
     <script
