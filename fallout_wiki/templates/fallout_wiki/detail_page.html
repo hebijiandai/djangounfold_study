@@ -1,0 +1,59 @@
+{% extends 'fallout_wiki/base.html' %}
+{% load static %}
+
+{% block title %}{{ display_name }} | 辐射4百科{% endblock %}
+
+{% block content %}
+<div class="card">
+    {% if main_image_url %}
+        <div class="blog-header" style="background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.7)), url('{{ main_image_url }}');">
+            <h1>{{ display_name }}</h1>
+        </div>
+    {% endif %}
+
+    <div class="card-body p-lg-5">
+        
+        <!-- Explanation Section -->
+        {% for field in fields %}
+            {% if field.name == '说明' %}
+                <div class="mb-5">
+                    <h2 class="mb-4">{{ field.name }}</h2>
+                    <p style="line-height: 1.8; white-space: pre-wrap;">{{ field.value }}</p>
+                </div>
+                <hr class="my-5" />
+            {% endif %}
+        {% endfor %}
+
+        <h2 class="mb-4">数据详情 <small class="text-muted fs-5">({{ model_name_singular }})</small></h2>
+
+        <div class="row">
+            {% for field in fields %}
+                {% if field.name != 'id' and field.name != '说明' %} {# Also exclude the explanation field from the grid #}
+                    <div class="col-md-6 mb-4">
+                        <div class="d-flex">
+                            <div class="me-3 text-muted" style="min-width: 100px;">
+                                <strong class="text-light">{{ field.name }}</strong>
+                            </div>
+                            <div>
+                                {% if field.is_url %}
+                                    <a href="{{ field.value }}" target="_blank">查看链接 <i class="fas fa-external-link-alt fa-xs"></i></a>
+                                {% else %}
+                                    {{ field.value }}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+        
+        <hr class="my-5" />
+
+        <div class="text-center">
+            <a href="{% url 'fallout_wiki:wiki_index' %}" class="btn btn-outline-light btn-rounded">
+                <i class="fas fa-arrow-left me-2"></i> 返回主列表
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

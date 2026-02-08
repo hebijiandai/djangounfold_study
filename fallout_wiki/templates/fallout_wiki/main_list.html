@@ -1,0 +1,97 @@
+{% extends 'fallout_wiki/base.html' %}
+
+{% block title %}主页 | 辐射4百科{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <h1 class="card-title mb-4">联邦数据库</h1>
+
+        <!-- Tabs navs -->
+        <ul class="nav nav-tabs mb-3" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <a
+                class="nav-link active"
+                id="locations-tab"
+                data-mdb-tab-init
+                href="#locations"
+                role="tab"
+                aria-controls="locations"
+                aria-selected="true"
+                >地点 (Locations)</a
+                >
+            </li>
+            <li class="nav-item" role="presentation">
+                <a
+                class="nav-link"
+                id="factions-tab"
+                data-mdb-tab-init
+                href="#factions"
+                role="tab"
+                aria-controls="factions"
+                aria-selected="false"
+                >派系 (Factions)</a
+                >
+            </li>
+            <li class="nav-item" role="presentation">
+                <a
+                class="nav-link"
+                id="regions-tab"
+                data-mdb-tab-init
+                href="#regions"
+                role="tab"
+                aria-controls="regions"
+                aria-selected="false"
+                >区域 (Regions)</a
+                >
+            </li>
+        </ul>
+        <!-- Tabs navs -->
+
+        <!-- Tabs content -->
+        <div class="tab-content" id="myTabContent">
+            <div
+                class="tab-pane fade show active"
+                id="locations"
+                role="tabpanel"
+                aria-labelledby="locations-tab"
+            >
+                <div class="list-group">
+                    {% for location in locations %}
+                        <a href="{% url 'fallout_wiki:wiki_detail' model_name='location' pk=location.pk %}" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">{{ location.name_cn }}</h5>
+                                <small class="text-muted">{{ location.region.name }}</small>
+                            </div>
+                            <p class="mb-1">{{ location.get_location_type_display }} | {{ location.notes }}</p>
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="tab-pane fade" id="factions" role="tabpanel" aria-labelledby="factions-tab">
+                <div class="list-group">
+                    {% for faction in factions %}
+                        <a href="{% url 'fallout_wiki:wiki_detail' model_name='faction' pk=faction.pk %}" class="list-group-item list-group-item-action d-flex align-items-center">
+                            <img src="{{ faction.logo_url }}" alt="{{ faction.name }}" class="img-fluid rounded-circle me-3" style="width: 50px; height: 50px;">
+                            <div class="flex-grow-1">
+                                <h5 class="mb-1">{{ faction.name }}</h5>
+                                <p class="mb-1 text-muted">领袖: {{ faction.leader }}</p>
+                            </div>
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="tab-pane fade" id="regions" role="tabpanel" aria-labelledby="regions-tab">
+                <div class="list-group">
+                    {% for region in regions %}
+                         <a href="{% url 'fallout_wiki:wiki_detail' model_name='region' pk=region.pk %}" class="list-group-item list-group-item-action">
+                            {{ region.name }}
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <!-- Tabs content -->
+    </div>
+</div>
+{% endblock %}
