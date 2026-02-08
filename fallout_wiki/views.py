@@ -21,7 +21,7 @@ def wiki_index(request):
 
 def wiki_detail(request, model_name, pk):
     """
-    View to display the detail page for a specific model instance (e.g., a Location).
+    View to display the detail page for a specific model instance.
     """
     model_map = {
         'region': Region,
@@ -36,56 +36,55 @@ def wiki_detail(request, model_name, pk):
 
     obj = get_object_or_404(model, pk=pk)
     
-    # Determine the display name for the title
-    display_name = ""
-    if hasattr(obj, 'name_cn') and obj.name_cn:
-        display_name = obj.name_cn
-    elif hasattr(obj, 'name') and obj.name:
-        display_name = obj.name
+    display_name = getattr(obj, 'name_cn', '') or getattr(obj, 'name', '')
     
-    # Determine the correct image URL based on the model type
     main_image_url = ""
+    additional_image_urls = []
+    
     if isinstance(obj, Faction):
         main_image_url = obj.logo_url
+        if obj.image_url_2: additional_image_urls.append(obj.image_url_2)
+        if obj.image_url_3: additional_image_urls.append(obj.image_url_3)
+        if obj.image_url_4: additional_image_urls.append(obj.image_url_4)
     elif isinstance(obj, Region):
         main_image_url = obj.map_image_url
     elif isinstance(obj, Location):
         main_image_url = obj.screenshot_url
 
-    # Prepare a list of fields and their values for the template
     fields = []
-    for field in model._meta.get_fields():
-        # Ignore relational fields that point backwards and some internal fields
-        if field.one_to_many or field.many_to_many or field.auto_created or field.name == 'id':
-            continue
-            
-        value = getattr(obj, field.name, None)
-        
-        # Skip image URL fields, as they are handled by main_image_url
-        if field.name in ['logo_url', 'map_image_url', 'screenshot_url']:
-            continue
-            
-        # Get the display value for choice fields
-        if hasattr(obj, f'get_{field.name}_display'):
-            display_value = getattr(obj, f'get_{field.name}_display')()
-        # For ForeignKey fields, display the __str__ representation
-        elif isinstance(field, models.ForeignKey) and value:
-            display_value = str(value)
-        else:
-            display_value = value
+    # Explicitly list fields to control order and inclusion
+    field_names_to_show = [
+        'region', 'controlling_faction', 'location_type', 'difficulty', 'notes',
+        'is_settlement', 'has_workbench', 'is_cleared', 'related_quests',
+        'atmosphere_lore', 'visuals_desc', 'explanation', 'location_wiki_url'
+    ]
+    
+    for field_name in field_names_to_show:
+        if hasattr(obj, field_name):
+            field = model._meta.get_field(field_name)
+            value = getattr(obj, field_name)
 
-        if display_value is not None and display_value != "":
-            fields.append({
-                'name': field.verbose_name,
-                'value': display_value,
-                'is_url': field.name.endswith('_url') or "链接" in field.verbose_name,
-            })
+            if value is not None and value != "":
+                if hasattr(obj, f'get_{field_name}_display'):
+                    display_value = getattr(obj, f'get_{field_name}_display')()
+                elif isinstance(field, models.ForeignKey) and value:
+                    display_value = str(value)
+                else:
+                    display_value = value
+                
+                fields.append({
+                    'name': field.verbose_name,
+                    'value': display_value,
+                    'is_wiki_link': field.name == 'location_wiki_url',
+                    'is_long_text': isinstance(field, models.TextField),
+                })
 
     context = {
         'object': obj,
         'fields': fields,
         'model_name_singular': model._meta.verbose_name,
         'main_image_url': main_image_url,
-        'display_name': display_name, # Pass the display name
+        'additional_image_urls': additional_image_urls,
+        'display_name': display_name,
     }
     return render(request, 'fallout_wiki/detail_page.html', context)

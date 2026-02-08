@@ -63,7 +63,10 @@ class Faction(models.Model):
     player_rep_impact = models.TextField("玩家声望影响", blank=True)
     quote = models.TextField("标志性引言", blank=True)
     explanation = models.TextField("说明", blank=True, help_text="Detailed background story, at least 500 characters.")
-    
+    image_url_2 = models.URLField("附加图片2链接", max_length=4096, blank=True)
+    image_url_3 = models.URLField("附加图片3链接", max_length=4096, blank=True)
+    image_url_4 = models.URLField("附加图片4链接", max_length=4096, blank=True)
+
     def __str__(self):
         return self.name
 
@@ -105,7 +108,13 @@ class Location(models.Model):
     has_chemistry_station = models.BooleanField("有无化学工作台", default=False)
     is_underwater = models.BooleanField("是否水下", default=False)
     access_requires = models.CharField("进入需求", max_length=100, blank=True)
-    explanation = models.TextField("说明", blank=True, help_text="Detailed background story, at least 500 characters.")
+    explanation = models.TextField("说明", blank=True, help_text="Detailed background story.")
+    
+    # New fields from CSV
+    location_wiki_url = models.URLField("地点Wiki链接", blank=True)
+    atmosphere_lore = models.TextField("深度档案", blank=True)
+    visuals_desc = models.TextField("视觉分镜", blank=True)
+
     
     class Meta:
         ordering = ['region', 'parent_location_group', 'name_cn']

@@ -13,9 +13,20 @@
 
     <div class="card-body p-lg-5">
         
-        <!-- Explanation Section -->
+        <!-- Additional Images Section -->
+        {% if additional_image_urls %}
+        <div class="row mb-5">
+            {% for img_url in additional_image_urls %}
+                <div class="col-md-4 mb-3">
+                    <img src="{{ img_url }}" class="img-fluid rounded shadow-1-strong" alt="Additional Image" />
+                </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Long Text Sections (Explanation, Lore, etc.) -->
         {% for field in fields %}
-            {% if field.name == '说明' %}
+            {% if field.is_long_text %}
                 <div class="mb-5">
                     <h2 class="mb-4">{{ field.name }}</h2>
                     <p style="line-height: 1.8; white-space: pre-wrap;">{{ field.value }}</p>
@@ -28,15 +39,24 @@
 
         <div class="row">
             {% for field in fields %}
-                {% if field.name != 'id' and field.name != '说明' %} {# Also exclude the explanation field from the grid #}
+                {% if not field.is_long_text %}
                     <div class="col-md-6 mb-4">
-                        <div class="d-flex">
+                        <div class="d-flex align-items-start">
                             <div class="me-3 text-muted" style="min-width: 100px;">
                                 <strong class="text-light">{{ field.name }}</strong>
                             </div>
                             <div>
-                                {% if field.is_url %}
-                                    <a href="{{ field.value }}" target="_blank">查看链接 <i class="fas fa-external-link-alt fa-xs"></i></a>
+                                {% if field.is_wiki_link %}
+                                    <!-- Wiki Link Preview Card -->
+                                    <a href="{{ field.value }}" target="_blank" class="card hover-shadow" style="max-width: 350px; text-decoration: none;">
+                                        <div class="bg-image hover-overlay">
+                                            <img src="{{ main_image_url }}" class="img-fluid" />
+                                        </div>
+                                        <div class="card-body py-2 px-3" style="background-color: #3e3e3e;">
+                                            <p class="card-text text-light small mb-1">{{ display_name }} Wiki</p>
+                                            <p class="card-text text-muted small text-truncate">{{ field.value }}</p>
+                                        </div>
+                                    </a>
                                 {% else %}
                                     {{ field.value }}
                                 {% endif %}
