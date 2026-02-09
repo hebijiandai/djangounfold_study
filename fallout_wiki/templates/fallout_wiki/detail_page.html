@@ -5,10 +5,44 @@
 
 {% block content %}
 <div class="card p-2 p-md-4">
-    {% if main_image_url %}
-        <div class="text-center mb-4">
-            <img src="{{ main_image_url }}" class="img-fluid rounded" style="max-height: 400px; border: 2px solid var(--pip-boy-green);" alt="{{ display_name }}"/>
+    {% if all_image_urls %}
+    <!-- Carousel wrapper -->
+    <div id="imageSlider" class="carousel slide carousel-fade mb-4" data-mdb-carousel-init>
+        <!-- Indicators -->
+        <div class="carousel-indicators">
+            {% for img_url in all_image_urls %}
+            <button
+                type="button"
+                data-mdb-target="#imageSlider"
+                data-mdb-slide-to="{{ forloop.counter0 }}"
+                class="{% if forloop.first %}active{% endif %}"
+                aria-current="{% if forloop.first %}true{% endif %}"
+                aria-label="Slide {{ forloop.counter }}"
+            ></button>
+            {% endfor %}
         </div>
+
+        <!-- Inner -->
+        <div class="carousel-inner rounded" style="border: 2px solid var(--pip-boy-green);">
+            {% for img_url in all_image_urls %}
+            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                <img src="{{ img_url }}" class="d-block w-100 pip-boy-image-filter" alt="{{ display_name }} image {{ forloop.counter }}" />
+            </div>
+            {% endfor %}
+        </div>
+        <!-- Inner -->
+
+        <!-- Controls -->
+        <button class="carousel-control-prev" type="button" data-mdb-target="#imageSlider" data-mdb-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-mdb-target="#imageSlider" data-mdb-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
+    </div>
+    <!-- Carousel wrapper -->
     {% endif %}
 
     <h1 class="text-center mb-4">{{ display_name }}</h1>
@@ -16,14 +50,13 @@
 
     <hr style="border-color: var(--pip-boy-green);" />
 
-    <!-- Additional Images Section -->
-    {% if additional_image_urls %}
-    <div class="row mb-4">
-        {% for img_url in additional_image_urls %}
-            <div class="col-md-4 mb-3">
-                <img src="{{ img_url }}" class="img-fluid rounded" style="border: 1px solid var(--pip-boy-green);" alt="Additional Image" />
-            </div>
-        {% endfor %}
+    {% if radar_chart_data %}
+    <div class="mb-4">
+        <h3 class="mb-3">属性分析 (雷达图)</h3>
+        <div style="max-width: 500px; margin: auto;">
+            <canvas id="radarChart"></canvas>
+        </div>
+        {{ radar_chart_data|json_script:"radarChartData" }} {# Moved json_script here, outside <script> tag #}
     </div>
     <hr style="border-color: var(--pip-boy-green);" />
     {% endif %}
@@ -33,7 +66,14 @@
         {% if field.is_long_text %}
             <div class="mb-4">
                 <h3 class="mb-3" id="field-{{ field.name }}">{{ field.name }}</h3>
-                <p style="line-height: 1.7; white-space: pre-wrap; font-size: 1.1rem;">{{ field.value }}</p>
+                {% if field.is_english_text %}
+                    <div class="original-text-quote" style="font-size: 0.9rem; opacity: 0.8; border-left: 3px solid var(--pip-boy-green); padding-left: 1rem; font-family: monospace;">
+                        <p><strong>[原文引用]</strong></p>
+                        <p style="line-height: 1.7; white-space: pre-wrap;">{{ field.value }}</p>
+                    </div>
+                {% else %}
+                    <p style="line-height: 1.7; white-space: pre-wrap; font-size: 1.1rem;">{{ field.value }}</p>
+                {% endif %}
             </div>
         {% endif %}
     {% endfor %}
@@ -46,16 +86,16 @@
         {% for field in fields %}
             {% if not field.is_long_text %}
                 <div class="col-md-6 mb-3">
-                    <div class="d-flex align-items-start">
-                        <div class="me-3" style="min-width: 120px;" id="field-{{ field.name }}">
+                    <div class="kv-pair" id="field-{{ field.name }}">
+                        <div class="key">
                             <strong>{{ field.name }}:</strong>
                         </div>
-                        <div class="flex-grow-1">
+                        <div class="filler"></div>
+                        <div class="value">
                             {% if field.is_wiki_link %}
                                 <!-- Wiki Link Preview Card -->
-                                <a href="{{ field.value }}" target="_blank" class="text-decoration-none d-block p-2" style="border: 1px solid var(--pip-boy-green); border-radius: 5px;">
-                                    <p class="mb-0">{{ display_name }} Wiki</p>
-                                    <p class="mb-0 small text-truncate">{{ field.value }}</p>
+                                <a href="{{ field.value }}" target="_blank" class="text-decoration-none d-block p-2" style="border: 1px solid var(--pip-boy-green); border-radius: 5px; text-align: left;">
+                                    <p class="mb-0">{{ field.name }} Wiki</p>
                                 </a>
                             {% else %}
                                 {{ field.value }}
@@ -72,30 +112,49 @@
     <hr class="my-4" style="border-color: var(--pip-boy-green);" />
     <section class="bottom-navigation-sitemap container mt-5 pb-5">
         <h2 style="color: var(--pip-boy-green); margin-bottom: 1.5rem;">页面导览 - 详细信息索引</h2>
-        <div class="row">
+        
+        <!-- MDB Accordion -->
+        <div class="accordion" id="bottomNavAccordion">
             {% for category_title, sections in bottom_nav_data.items %}
-                <div class="col-12 col-md-6 col-lg-4 mb-4"> {# Use cols to arrange Level 1 categories #}
-                    <h3 class="mb-3" style="color: var(--pip-boy-green); border-bottom: 1px solid var(--pip-boy-green); padding-bottom: 0.5rem;">{{ category_title }}</h3>
-                    {% for label, links in sections.items %}
-                        <div class="card mb-2" style="background-color: transparent !important; border: 1px solid rgba(45, 201, 55, 0.2) !important;"> {# Mimic card style, subtle border #}
-                            <div class="card-body py-2">
-                                <h4 class="card-title mb-1" style="color: var(--pip-boy-green); font-size: 1.1rem;">{{ label }}</h4>
-                                <div class="row g-0"> {# Use g-0 for no gutter between links #}
-                                    {% for link_data in links %}
-                                        <div class="col-6 col-sm-4 col-md-6 col-lg-4"> {# Distribute links #}
-                                            <a href="{{ link_data.url }}" class="text-white-50 small d-block" style="padding: 2px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ link_data.text }}</a>
+                <div class="accordion-item" style="background-color: var(--pip-boy-bg); border: 1px solid var(--pip-boy-green);">
+                    <h2 class="accordion-header" id="heading-{{ forloop.counter }}">
+                        <button
+                            data-mdb-collapse-init
+                            class="accordion-button collapsed"
+                            type="button"
+                            data-mdb-target="#collapse-{{ forloop.counter }}"
+                            aria-expanded="false"
+                            aria-controls="collapse-{{ forloop.counter }}"
+                            style="background-color: var(--pip-boy-bg-darker); color: var(--pip-boy-green);"
+                        >
+                            {{ category_title }}
+                        </button>
+                    </h2>
+                    <div id="collapse-{{ forloop.counter }}" class="accordion-collapse collapse" aria-labelledby="heading-{{ forloop.counter }}" data-mdb-parent="#bottomNavAccordion">
+                        <div class="accordion-body">
+                            {% for label, links in sections.items %}
+                                <div class="card mb-2" style="background-color: transparent !important; border: 1px solid rgba(45, 201, 55, 0.2) !important;">
+                                    <div class="card-body py-2">
+                                        <h4 class="card-title mb-1" style="color: var(--pip-boy-green); font-size: 1.1rem;">{{ label }}</h4>
+                                        <div class="row g-0">
+                                            {% for link_data in links %}
+                                                <div class="col-6 col-sm-4">
+                                                    <a href="{{ link_data.url }}" class="text-white-50 small d-block" style="padding: 2px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ link_data.text }}</a>
+                                                </div>
+                                            {% endfor %}
                                         </div>
-                                    {% endfor %}
+                                        {% if links|length >= 50 %}
+                                            <p class="small text-warning mt-2 mb-0">此分类项目可能过多，请滚动页面或点击查看。</p>
+                                        {% endif %}
+                                    </div>
                                 </div>
-                                {% if links|length >= 50 %} {# Use >= 50 to indicate full or exceeding capacity #}
-                                    <p class="small text-warning mt-2 mb-0">此分类项目可能过多，请滚动页面或点击查看。</p>
-                                {% endif %}
-                            </div>
+                            {% endfor %}
                         </div>
-                    {% endfor %}
+                    </div>
                 </div>
             {% endfor %}
         </div>
+        <!-- End MDB Accordion -->
     </section>
     {% endif %}
 
@@ -107,4 +166,78 @@
         </a>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const radarChartElement = document.getElementById('radarChart');
+
+    if (radarChartElement) { // No need to check radarChartData directly here
+        const dataScript = document.getElementById('radarChartData');
+        if (dataScript) { // Ensure the script tag exists
+            const data = JSON.parse(dataScript.textContent);
+            
+            const ctx = radarChartElement.getContext('2d');
+            new Chart(ctx, {
+                type: 'radar',
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: {
+                                color: 'rgba(0, 255, 0, 0.5)' // Green angle lines
+                            },
+                            grid: {
+                                color: 'rgba(0, 255, 0, 0.3)' // Green grid lines
+                            },
+                            pointLabels: {
+                                color: 'rgb(0, 255, 0)', // Green labels
+                                font: {
+                                    family: 'VT323',
+                                    size: 14
+                                }
+                            },
+                            ticks: {
+                                color: 'rgba(0, 255, 0, 0.7)', // Green ticks
+                                backdropColor: 'transparent', // Transparent background for ticks
+                                font: {
+                                    family: 'VT323'
+                                },
+                                beginAtZero: true,
+                                max: Math.max(...data.max_values) // Set max from passed data
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: 'rgb(0, 255, 0)', // Green legend text
+                                font: {
+                                    family: 'VT323'
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            borderColor: 'rgb(0, 255, 0)',
+                            borderWidth: 1,
+                            titleColor: 'rgb(0, 255, 0)',
+                            bodyColor: 'rgb(0, 255, 0)',
+                            titleFont: {
+                                family: 'VT323'
+                            },
+                            bodyFont: {
+                                family: 'VT323'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+});
+</script>
 {% endblock %}

@@ -13,6 +13,11 @@
     href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/7.3.2/mdb.min.css"
     rel="stylesheet"
     />
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <!-- Grid.js CDN -->
+    <script src="https://unpkg.com/gridjs/dist/gridjs.umd.js"></script>
+    <link href="https://unpkg.com/gridjs/dist/theme/mermaid.min.css" rel="stylesheet" />
     <style>
         :root {
             --pip-boy-green: #2dc937;
@@ -26,6 +31,42 @@
             font-size: 1rem;
             line-height: 1.2;
             text-shadow: 0 0 5px var(--pip-boy-green);
+            position: relative; /* Needed for vignette pseudo-element */
+        }
+        /* Global Vignette/Curvature Effect */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            box-shadow: inset 0 0 100px rgba(0,0,0,0.7);
+            pointer-events: none;
+            z-index: 10000;
+        }
+        /* Global Scanline Overlay */
+        .global-scanline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.2) 0px,
+                rgba(0, 0, 0, 0.2) 1px,
+                transparent 1px,
+                transparent 4px
+            );
+            z-index: 10001;
+            animation: scanline-flicker 15s linear infinite;
+        }
+        @keyframes scanline-flicker {
+            0% { opacity: 0.8; }
+            50% { opacity: 1; }
+            100% { opacity: 0.8; }
         }
 
         main {
@@ -33,16 +74,23 @@
             border-radius: 10px;
             padding: 1rem;
             background-color: var(--pip-boy-bg);
-            box-shadow: inset 0 0 15px rgba(0,0,0,0.7);
+            box-shadow: inset 0 0 15px var(--pip-boy-bg-darker); /* Use themed darker background for shadow */
         }
+        /* General themed elements */
         .navbar, .card, .nav-tabs .nav-link, .list-group-item {
-            background-color: transparent !important;
-            color: var(--pip-boy-green) !important;
-            border-color: var(--pip-boy-green) !important;
+            /* background-color should be transparent by default, but allow theme to control */
+            color: var(--pip-boy-green);
+            border-color: var(--pip-boy-green);
+        }
+        .navbar { /* keep navbar background consistent with body */
+            background-color: var(--pip-boy-bg);
+        }
+        .card { /* card background should be theme background */
+            background-color: var(--pip-boy-bg);
         }
         .nav-tabs .nav-link.active {
-            background-color: var(--pip-boy-green) !important;
-            color: var(--pip-boy-bg-darker) !important;
+            background-color: var(--pip-boy-green);
+            color: var(--pip-boy-bg-darker);
             text-shadow: none;
         }
         a {
@@ -57,14 +105,98 @@
         .card-title, h1, h2, h3, h4, h5 { color: var(--pip-boy-green); }
         .list-group-item {
             border-left: none; border-right: none;
+            transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out; /* Smooth transition */
         }
         .list-group-item:first-child { border-top: none; }
         .list-group-item:last-child { border-bottom: none; }
+        .list-group-item:nth-child(even) {
+            background-color: rgba(45, 201, 55, 0.05); /* Zebra striping */
+        }
+        .list-group-item:hover {
+            background-color: var(--pip-boy-green); /* Hover highlight */
+            color: var(--pip-boy-bg-darker);
+            text-shadow: none;
+        }
+        .list-group-item:hover a {
+             color: var(--pip-boy-bg-darker) !important;
+        }
+        .kv-pair {
+            display: flex;
+            align-items: baseline;
+        }
+        .kv-pair .key {
+            flex-shrink: 0; /* Prevent key from shrinking */
+        }
+        .kv-pair .filler {
+            flex-grow: 1;
+            border-bottom: 2px dotted rgba(45, 201, 55, 0.4); /* Dotted line in Pip-Boy green */
+            margin: 0 0.5rem;
+            transform: translateY(-4px); /* Align with text baseline */
+        }
+        .kv-pair .value {
+            flex-shrink: 0; /* Prevent value from shrinking */
+            text-align: right;
+        }
+        .pip-boy-image-filter {
+            position: relative;
+            filter: saturate(1.5) contrast(1.2) brightness(0.9);
+            image-rendering: pixelated; /* Gives a low-res feel */
+        }
+        .pip-boy-image-filter::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.3) 0px,
+                rgba(0, 0, 0, 0.3) 1px,
+                transparent 1px,
+                transparent 3px
+            );
+            pointer-events: none;
+            z-index: 1;
+        }
+        /* Command-line style search input */
+        .cli-search-input-container {
+            padding: 0.5rem;
+            background-color: var(--pip-boy-bg-darker);
+            border: 2px solid var(--pip-boy-green);
+            border-radius: 5px;
+        }
+        .cli-search-input {
+            background-color: transparent;
+            border: none;
+            color: var(--pip-boy-green);
+            font-family: 'VT323', monospace;
+            font-size: 1.2rem;
+            width: 100%;
+            padding-left: 0.5rem;
+        }
+        .cli-search-input:focus {
+            outline: none;
+            box-shadow: none;
+        }
+        .cli-search-input-container::before {
+            content: '> ';
+        }
+        /* Blinking cursor effect */
+        .blinking-cursor {
+            animation: blink 1s step-end infinite;
+        }
+        @keyframes blink {
+            from, to { color: transparent }
+            50% { color: var(--pip-boy-green) }
+        }
     </style>
 </head>
-<body>
+<body><div class="global-scanline"></div>
 
     <main class="container mt-4">
+
+
         {% if request.resolver_match.view_name == 'fallout_wiki:wiki_detail' %}
             <div class="mb-3">
                 <a href="{% url 'fallout_wiki:wiki_index' %}" class="btn" style="border: 1px solid var(--pip-boy-green); color: var(--pip-boy-green);">
@@ -81,5 +213,6 @@
     type="text/javascript"
     src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/7.3.2/mdb.umd.min.js"
     ></script>
+    {% block scripts %}{% endblock %}
 </body>
 </html>

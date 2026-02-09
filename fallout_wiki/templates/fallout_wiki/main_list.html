@@ -3,98 +3,127 @@
 {% block title %}联邦数据库 | Pip-Boy 3000 Mk IV{% endblock %}
 
 {% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <!-- Grid.js search and pagination controls will be used instead -->
+</div>
+
 <!-- Tabs navs -->
 <ul class="nav nav-tabs nav-justified mb-3" id="mainTab" role="tablist">
     <li class="nav-item" role="presentation">
-        <a
-        class="nav-link active"
-        id="locations-tab"
-        data-mdb-tab-init
-        href="#locations"
-        role="tab"
-        aria-controls="locations"
-        aria-selected="true"
-        >地点 [{{ locations|length }}]</a
-        >
+        <a class="nav-link {% if active_tab == 'locations' %}active{% endif %}" id="locations-tab" data-mdb-tab-init href="#locations" role="tab">地点 [{{ locations|length }}]</a>
     </li>
     <li class="nav-item" role="presentation">
-        <a
-        class="nav-link"
-        id="factions-tab"
-        data-mdb-tab-init
-        href="#factions"
-        role="tab"
-        aria-controls="factions"
-        aria-selected="false"
-        >派系 [{{ factions|length }}]</a
-        >
+        <a class="nav-link {% if active_tab == 'factions' %}active{% endif %}" id="factions-tab" data-mdb-tab-init href="#factions" role="tab">派系 [{{ factions|length }}]</a>
     </li>
     <li class="nav-item" role="presentation">
-        <a
-        class="nav-link"
-        id="regions-tab"
-        data-mdb-tab-init
-        href="#regions"
-        role="tab"
-        aria-controls="regions"
-        aria-selected="false"
-        >区域 [{{ regions|length }}]</a
-        >
+        <a class="nav-link {% if active_tab == 'regions' %}active{% endif %}" id="regions-tab" data-mdb-tab-init href="#regions" role="tab">区域 [{{ regions|length }}]</a>
     </li>
     <li class="nav-item" role="presentation">
-        <a
-        class="nav-link"
-        id="creatures-tab"
-        data-mdb-tab-init
-        href="#creatures"
-        role="tab"
-        aria-controls="creatures"
-        aria-selected="false"
-        >生物 [{{ creatures|length }}]</a
-        >
+        <a class="nav-link {% if active_tab == 'creatures' %}active{% endif %}" id="creatures-tab" data-mdb-tab-init href="#creatures" role="tab">生物 [{{ creatures|length }}]</a>
     </li>
     <li class="nav-item" role="presentation">
-        <a
-        class="nav-link"
-        id="consumables-tab"
-        data-mdb-tab-init
-        href="#consumables"
-        role="tab"
-        aria-controls="consumables"
-        aria-selected="false"
-        >消耗品 [{{ consumables|length }}]</a
-        >
+        <a class="nav-link {% if active_tab == 'consumables' %}active{% endif %}" id="consumables-tab" data-mdb-tab-init href="#consumables" role="tab">消耗品 [{{ consumables|length }}]</a>
     </li>
 </ul>
-<!-- Tabs navs -->
 
 <!-- Tabs content -->
 <div class="tab-content" id="mainTabContent">
-    <div class="tab-pane fade show active" id="locations" role="tabpanel" aria-labelledby="locations-tab">
-        <div class="list-group">
-            {% for item in locations %}<a href="{% url 'fallout_wiki:wiki_detail' model_name='location' pk=item.pk %}" class="list-group-item list-group-item-action">{{ item.name_cn }}</a>{% endfor %}
-        </div>
+    <div class="tab-pane fade {% if active_tab == 'locations' %}show active{% endif %}" id="locations" role="tabpanel">
+        <div id="locationsGrid"></div>
     </div>
-    <div class="tab-pane fade" id="factions" role="tabpanel" aria-labelledby="factions-tab">
-        <div class="list-group">
-            {% for item in factions %}<a href="{% url 'fallout_wiki:wiki_detail' model_name='faction' pk=item.pk %}" class="list-group-item list-group-item-action">{{ item.name }}</a>{% endfor %}
-        </div>
+    <div class="tab-pane fade {% if active_tab == 'factions' %}show active{% endif %}" id="factions" role="tabpanel">
+        <div id="factionsGrid"></div>
     </div>
-    <div class="tab-pane fade" id="regions" role="tabpanel" aria-labelledby="regions-tab">
-        <div class="list-group">
-            {% for item in regions %}<a href="{% url 'fallout_wiki:wiki_detail' model_name='region' pk=item.pk %}" class="list-group-item list-group-item-action">{{ item.name }}</a>{% endfor %}
-        </div>
+    <div class="tab-pane fade {% if active_tab == 'regions' %}show active{% endif %}" id="regions" role="tabpanel">
+        <div id="regionsGrid"></div>
     </div>
-    <div class="tab-pane fade" id="creatures" role="tabpanel" aria-labelledby="creatures-tab">
-        <div class="list-group">
-            {% for item in creatures %}<a href="{% url 'fallout_wiki:wiki_detail' model_name='creature' pk=item.pk %}" class="list-group-item list-group-item-action">{{ item.name }}</a>{% endfor %}
-        </div>
+    <div class="tab-pane fade {% if active_tab == 'creatures' %}show active{% endif %}" id="creatures" role="tabpanel">
+        <div id="creaturesGrid"></div>
     </div>
-    <div class="tab-pane fade" id="consumables" role="tabpanel" aria-labelledby="consumables-tab">
-        <div class="list-group">
-            {% for item in consumables %}<a href="{% url 'fallout_wiki:wiki_detail' model_name='consumable' pk=item.pk %}" class="list-group-item list-group-item-action">{{ item.name }}</a>{% endfor %}
-        </div>
+    <div class="tab-pane fade {% if active_tab == 'consumables' %}show active{% endif %}" id="consumables" role="tabpanel">
+        <div id="consumablesGrid"></div>
     </div>
 </div>
-<!-- Tabs content -->
+
+<!-- JSON data script tags, placed in the body but outside the main script block -->
+{{ locations|json_script:"locationsData" }}
+{{ factions|json_script:"factionsData" }}
+{{ regions|json_script:"regionsData" }}
+{{ creatures|json_script:"creaturesData" }}
+{{ consumables|json_script:"consumablesData" }}
+
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Correctly parse data from the generated script tags
+    const locationsData = JSON.parse(document.getElementById('locationsData').textContent);
+    const factionsData = JSON.parse(document.getElementById('factionsData').textContent);
+    const regionsData = JSON.parse(document.getElementById('regionsData').textContent);
+    const creaturesData = JSON.parse(document.getElementById('creaturesData').textContent);
+    const consumablesData = JSON.parse(document.getElementById('consumablesData').textContent);
+
+    const createDetailLink = (pk, model_name, display_text) => {
+        return gridjs.html(`<a href="/wiki/${model_name}/${pk}/" class="gridjs-link">${display_text}</a>`);
+    };
+
+    const commonGridConfig = {
+        search: true,
+        sort: true,
+        pagination: {
+            enabled: true,
+            limit: 15,
+            buttonsCount: 5
+        },
+        style: {
+            container: { 'border': '1px solid var(--pip-boy-green)' },
+            table: { width: '100%', 'background-color': 'transparent', color: 'var(--pip-boy-green)' },
+            th: { 'background-color': 'var(--pip-boy-bg-darker)', color: 'var(--pip-boy-green)', 'border-bottom': '1px solid var(--pip-boy-green)' },
+            td: { 'background-color': 'var(--pip-boy-bg)', color: 'var(--pip-boy-green)', 'border-bottom': '1px dotted rgba(45, 201, 55, 0.4)' },
+            'tr:nth-child(even) td': { 'background-color': 'var(--pip-boy-bg-darker)' },
+            'td:hover, tr:hover td': { 'background-color': 'rgba(45, 201, 55, 0.2)' },
+            footer: { 'background-color': 'var(--pip-boy-bg-darker)', 'border-top': '1px solid var(--pip-boy-green)' },
+            'input.gridjs-input': { 'background-color': 'var(--pip-boy-bg-darker)', color: 'var(--pip-boy-green)', border: '1px solid var(--pip-boy-green)' },
+            'a.gridjs-link': { color: 'var(--pip-boy-green)' }
+        },
+        language: {
+            'search': { 'placeholder': '搜索...' },
+            'pagination': { 'previous': '上一页', 'next': '下一页', 'showing': '显示', 'of': '共', 'to': '-', 'results': '条记录', }
+        }
+    };
+
+    new gridjs.Grid({
+        ...commonGridConfig,
+        columns: [
+            { id: 'pk', hidden: true },
+            { name: '名称', id: 'name_cn', formatter: (cell, row) => createDetailLink(row.cells[0].data, 'location', cell) },
+            { name: '区域', id: 'region__name' },
+            { name: '类型', id: 'location_type' },
+            { name: '难度', id: 'difficulty' },
+            { name: '主要敌人', id: 'primary_enemies' }
+        ],
+        data: locationsData
+    }).render(document.getElementById('locationsGrid'));
+
+    new gridjs.Grid({
+        ...commonGridConfig,
+        columns: [
+            { id: 'pk', hidden: true },
+            { name: '名称', id: 'name', formatter: (cell, row) => createDetailLink(row.cells[0].data, 'faction', cell) },
+            { name: '领袖', id: 'leader' },
+            { name: '科技水平', id: 'tech_level' },
+            { name: '敌对状态', id: 'hostility_status' }
+        ],
+        data: factionsData
+    }).render(document.getElementById('factionsGrid'));
+    
+    // ... similar initializations for other grids ...
+    new gridjs.Grid({...commonGridConfig, columns: [{ id: 'pk', hidden: true },{ name: '名称', id: 'name', formatter: (cell, row) => createDetailLink(row.cells[0].data, 'region', cell) }, {name: '辐射水平', id: 'radiation_level'}, {name: '主要威胁', id: 'primary_threat'}], data: regionsData}).render(document.getElementById('regionsGrid'));
+    new gridjs.Grid({...commonGridConfig, columns: [{ id: 'pk', hidden: true },{ name: '名称', id: 'name', formatter: (cell, row) => createDetailLink(row.cells[0].data, 'creature', cell) }, {name: '变异起源', id: 'mutation_origin'}, {name: '攻击性', id: 'aggression_level_rating'}, {name: '栖息地', id: 'habitat_zone'}], data: creaturesData}).render(document.getElementById('creaturesGrid'));
+    new gridjs.Grid({...commonGridConfig, columns: [{ id: 'pk', hidden: true },{ name: '名称', id: 'name', formatter: (cell, row) => createDetailLink(row.cells[0].data, 'consumable', cell) }, {name: '稀有度', id: 'rarity_level'}, {name: '价值', id: 'value_caps_cost'}, {name: '重量(磅)', id: 'weight_lbs'}], data: consumablesData}).render(document.getElementById('consumablesGrid'));
+
+});
+</script>
 {% endblock %}

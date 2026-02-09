@@ -21,7 +21,7 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('fallout_wiki.urls')),
+    path('wiki/', include('fallout_wiki.urls')),
 ]
 
 if settings.DEBUG:
