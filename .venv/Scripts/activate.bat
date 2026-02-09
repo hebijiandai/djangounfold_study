@@ -26,9 +26,9 @@
     "%SystemRoot%\System32\chcp.com" 65001 > nul
 )
 
-@for %%i in ("D:\gemini_cli\.venv") do @set "VIRTUAL_ENV=%%~fi"
+@for %%i in ("D:\gemini_clic_djangounfold\djangounfold_study\.venv") do @set "VIRTUAL_ENV=%%~fi"
 
-@set "VIRTUAL_ENV_PROMPT=gemini_cli"
+@set "VIRTUAL_ENV_PROMPT=djangounfold_study"
 @if NOT DEFINED VIRTUAL_ENV_PROMPT (
     @for %%d in ("%VIRTUAL_ENV%") do @set "VIRTUAL_ENV_PROMPT=%%~nxd"
 )

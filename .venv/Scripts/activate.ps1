@@ -58,8 +58,8 @@ deactivate -nondestructive
 $VIRTUAL_ENV = $BASE_DIR
 $env:VIRTUAL_ENV = $VIRTUAL_ENV
 
-if ("gemini_cli" -ne "") {
-    $env:VIRTUAL_ENV_PROMPT = "gemini_cli"
+if ("djangounfold_study" -ne "") {
+    $env:VIRTUAL_ENV_PROMPT = "djangounfold_study"
 }
 else {
     $env:VIRTUAL_ENV_PROMPT = $( Split-Path $env:VIRTUAL_ENV -Leaf )
