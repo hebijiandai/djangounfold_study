@@ -17,15 +17,38 @@ def is_mostly_english(text):
 
 def wiki_index(request):
     """
-    View to display the main page with tabs for all models, with data for Grid.js.
+    View to display the main page with tabs for all models, with pagination.
     """
+    # Pagination logic
+    allowed_per_page = [15, 30, 60, 100]
+    try:
+        per_page = int(request.GET.get('per_page', 15))
+        if per_page not in allowed_per_page:
+            per_page = 15
+    except ValueError:
+        per_page = 15
+
+    paginator_locations = Paginator(Location.objects.all().order_by('name_cn'), per_page)
+    paginator_factions = Paginator(Faction.objects.all().order_by('name'), per_page)
+    paginator_regions = Paginator(Region.objects.all().order_by('name'), per_page)
+    paginator_creatures = Paginator(Creature.objects.all().order_by('name'), per_page)
+    paginator_consumables = Paginator(Consumable.objects.all().order_by('name'), per_page)
+
+    page_number_locations = request.GET.get('locations_page', 1)
+    page_number_factions = request.GET.get('factions_page', 1)
+    page_number_regions = request.GET.get('regions_page', 1)
+    page_number_creatures = request.GET.get('creatures_page', 1)
+    page_number_consumables = request.GET.get('consumables_page', 1)
+
     context = {
-        'locations': list(Location.objects.all().values('pk', 'name_cn', 'region__name', 'location_type', 'difficulty', 'primary_enemies')),
-        'factions': list(Faction.objects.all().values('pk', 'name', 'leader', 'tech_level', 'hostility_status')),
-        'regions': list(Region.objects.all().values('pk', 'name', 'radiation_level', 'avg_temperature_celsius', 'primary_threat')),
-        'creatures': list(Creature.objects.all().values('pk', 'name', 'mutation_origin', 'aggression_level_rating', 'habitat_zone', 'weakness_type')),
-        'consumables': list(Consumable.objects.all().values('pk', 'name', 'rarity_level', 'value_caps_cost', 'weight_lbs', 'effect_description_text')),
+        'locations_page': paginator_locations.get_page(page_number_locations),
+        'factions_page': paginator_factions.get_page(page_number_factions),
+        'regions_page': paginator_regions.get_page(page_number_regions),
+        'creatures_page': paginator_creatures.get_page(page_number_creatures),
+        'consumables_page': paginator_consumables.get_page(page_number_consumables),
         'active_tab': request.GET.get('tab', 'locations'),
+        'per_page': per_page,
+        'allowed_per_page': allowed_per_page,
     }
     return render(request, 'fallout_wiki/main_list.html', context)
 
@@ -50,7 +73,6 @@ def wiki_detail(request, model_name, pk):
     
     display_name = getattr(obj, 'name_cn', '') or getattr(obj, 'name', '')
     
-    # Consolidate all available image URLs into a single list
     all_image_urls = []
     image_fields = [
         'screenshot_url', 'logo_url', 'map_image_url', 'image_url_ref',
@@ -64,7 +86,6 @@ def wiki_detail(request, model_name, pk):
 
     fields = []
     
-    # --- Start Bottom Navigation Data Generation ---
     bottom_nav_data = {}
     
     field_grouping_map = {
@@ -141,67 +162,52 @@ def wiki_detail(request, model_name, pk):
 
     radar_chart_data = None
     if model_name.lower() == 'faction':
-        # Define radar chart labels and scales
         labels = ['科技水平', '兵力规模', '攻击性', '资源', '意识形态强度', '影响力']
-        max_values = [10, 10, 10, 10, 10, 10] # Max scale for each attribute
-
-        # Map Faction attributes to numerical values (lore-friendly heuristics)
         data_values = [0] * len(labels)
-        
-        # 科技水平 (Tech Level)
         tech_map = {'SCAVENGED': 3, 'PRE_WAR': 6, 'ADVANCED': 8, 'CUTTING_EDGE': 10}
-        data_values[0] = tech_map.get(obj.tech_level.upper(), 5) # Default to 5
-
-        # 兵力规模 (Faction Size) - rough estimate
-        size_map = {'SMALL': 3, 'MEDIUM': 5, 'LARGE': 7, 'VAST': 9} # Assuming these values exist
-        # If no specific faction_size field, use 'allies' and 'enemies' as proxy
+        data_values[0] = tech_map.get(obj.tech_level.upper(), 5)
+        
+        # Simplified force_score
         force_score = 5
-        if obj.faction_size and obj.faction_size.upper() in size_map:
-            force_score = size_map[obj.faction_size.upper()]
-        else: # Heuristic based on leader presence and number of allies/enemies
-            if obj.leader: force_score += 1
-            if obj.allies: force_score += 1
-            if obj.enemies: force_score += 1
-        data_values[1] = min(force_score, 10) # Cap at 10
-
-        # 攻击性 (Hostility)
+        if obj.leader: force_score += 1
+        if obj.allies: force_score += 1
+        data_values[1] = min(force_score, 10)
+        
         hostility_map = {'FRIENDLY': 1, 'NEUTRAL': 5, 'HOSTILE': 9, 'EXTREME': 10}
         data_values[2] = hostility_map.get(obj.hostility_status.upper(), 5)
-
-        # 资源 (Resource) - proxy from trade_goods_specialty, tech_level
+        
         resource_score = 3
-        if obj.trade_goods_specialty: resource_score += 2 # Has specialty
-        if obj.tech_level == 'ADVANCED' or obj.tech_level == 'CUTTING_EDGE': resource_score += 3 # High tech implies resources
+        if obj.trade_goods_specialty: resource_score += 2
+        if obj.tech_level in ['ADVANCED', 'CUTTING_EDGE']: resource_score += 3
         data_values[3] = min(resource_score, 10)
-
-        # 意识形态强度 (Ideology Strength) - based on ideology/quote/explanation length
+        
         ideology_score = 2
         if obj.ideology: ideology_score += 3
         if obj.quote: ideology_score += 2
-        if obj.explanation: ideology_score += 1 # Longer explanation might imply stronger ideology
+        if obj.explanation: ideology_score += 1
         data_values[4] = min(ideology_score, 10)
-
-        # 影响力 (Influence) - based on faction_size, notable_members, player_rep_impact
+        
         influence_score = 3
-        if obj.faction_size: influence_score += size_map.get(obj.faction_size.upper(), 0) # Add based on size
+        if obj.faction_size: # If faction_size is a field and has values
+            size_map = {'SMALL': 3, 'MEDIUM': 5, 'LARGE': 7, 'VAST': 9}
+            influence_score += size_map.get(obj.faction_size.upper(), 0)
         if obj.notable_members: influence_score += 2
         if obj.player_rep_impact: influence_score += 3
         data_values[5] = min(influence_score, 10)
-
 
         radar_chart_data = {
             'labels': labels,
             'datasets': [{
                 'label': obj.name,
                 'data': data_values,
-                'backgroundColor': 'rgba(0, 255, 0, 0.2)', # Semi-transparent green
-                'borderColor': 'rgb(0, 255, 0)', # Green line
+                'backgroundColor': 'rgba(0, 255, 0, 0.2)',
+                'borderColor': 'rgb(0, 255, 0)',
                 'pointBackgroundColor': 'rgb(0, 255, 0)',
                 'pointBorderColor': '#fff',
                 'pointHoverBackgroundColor': '#fff',
                 'pointHoverBorderColor': 'rgb(0, 255, 0)'
             }],
-            'max_values': max_values
+            'max_values': [10] * len(labels) # Pass max values for chart scaling
         }
 
     context = {
