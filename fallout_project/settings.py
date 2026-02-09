@@ -128,3 +128,85 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Media files (User-uploaded content)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# --- Django Unfold Configuration ---
+UNFOLD = {
+    "SITE_TITLE": "Pip-Boy 3000 Mk IV - Admin",
+    "SITE_HEADER": "Pip-Boy 3000 Mk IV Administration",
+    "SITE_SYMBOL": "settings",  # A simple gear icon for now
+    
+    # Custom "Fallout" theme colors
+    "THEME": "dark", # Default to dark mode
+    "STYLES": [
+        "https://fonts.googleapis.com/css2?family=VT323&display=swap", # Pip-Boy font
+    ],
+    "COLORS": {
+        "primary": {
+            "50": "#eefdf0",
+            "100": "#dcfbe3",
+            "200": "#bbf7c8",
+            "300": "#85ef9e",
+            "400": "#4be071",
+            "500": "#2dc957", # Pip-Boy Green
+            "600": "#20a546",
+            "700": "#1c823a",
+            "800": "#196731",
+            "900": "#16552a",
+            "950": "#0a2f16"
+        }
+    },
+    
+    "DASHBOARD_CALLBACK": "fallout_db.dashboard.dashboard_callback",
+    "SIDEBAR": {
+        "show_search": True,
+        "show_all_applications": False, # Set to False to use our custom navigation
+        "navigation": [ # Replaced with hardcoded list of dicts
+            {
+                "title": "主要服务 Area",
+                "items": [
+                    {
+                        "title": "地点管理",
+                        "icon": "location_on",
+                        "link": "admin:fallout_db_location_changelist", # admin:<app_label>_<model_name>_changelist
+                    },
+                    {
+                        "title": "区域管理",
+                        "icon": "map",
+                        "link": "admin:fallout_db_region_changelist",
+                    },
+                ],
+            },
+            {
+                "title": "人与势力",
+                "items": [
+                    {
+                        "title": "派系管理",
+                        "icon": "group",
+                        "link": "admin:fallout_db_faction_changelist",
+                    },
+                    {
+                        "title": "生物管理",
+                        "icon": "bug_report",
+                        "link": "admin:fallout_db_creature_changelist",
+                    },
+                ],
+            },
+            {
+                "title": "物品与消耗品",
+                "items": [
+                    {
+                        "title": "消耗品管理",
+                        "icon": "local_drink",
+                        "link": "admin:fallout_db_consumable_changelist",
+                    },
+                ],
+            },
+            { # This is the "查看站点" link
+                "title": "查看站点",
+                "icon": "launch",
+                "link": "/", # Link to the main wiki site
+                "target": "_blank", # Open in a new tab
+            },
+        ]
+    }
+}
