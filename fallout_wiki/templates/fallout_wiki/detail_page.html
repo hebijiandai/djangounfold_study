@@ -32,7 +32,7 @@
     {% for field in fields %}
         {% if field.is_long_text %}
             <div class="mb-4">
-                <h3 class="mb-3">{{ field.name }}</h3>
+                <h3 class="mb-3" id="field-{{ field.name }}">{{ field.name }}</h3>
                 <p style="line-height: 1.7; white-space: pre-wrap; font-size: 1.1rem;">{{ field.value }}</p>
             </div>
         {% endif %}
@@ -47,7 +47,7 @@
             {% if not field.is_long_text %}
                 <div class="col-md-6 mb-3">
                     <div class="d-flex align-items-start">
-                        <div class="me-3" style="min-width: 120px;">
+                        <div class="me-3" style="min-width: 120px;" id="field-{{ field.name }}">
                             <strong>{{ field.name }}:</strong>
                         </div>
                         <div class="flex-grow-1">
@@ -67,6 +67,38 @@
         {% endfor %}
     </div>
     
+    {# Bottom Navigation Sitemap Section #}
+    {% if bottom_nav_data %}
+    <hr class="my-4" style="border-color: var(--pip-boy-green);" />
+    <section class="bottom-navigation-sitemap container mt-5 pb-5">
+        <h2 style="color: var(--pip-boy-green); margin-bottom: 1.5rem;">页面导览 - 详细信息索引</h2>
+        <div class="row">
+            {% for category_title, sections in bottom_nav_data.items %}
+                <div class="col-12 col-md-6 col-lg-4 mb-4"> {# Use cols to arrange Level 1 categories #}
+                    <h3 class="mb-3" style="color: var(--pip-boy-green); border-bottom: 1px solid var(--pip-boy-green); padding-bottom: 0.5rem;">{{ category_title }}</h3>
+                    {% for label, links in sections.items %}
+                        <div class="card mb-2" style="background-color: transparent !important; border: 1px solid rgba(45, 201, 55, 0.2) !important;"> {# Mimic card style, subtle border #}
+                            <div class="card-body py-2">
+                                <h4 class="card-title mb-1" style="color: var(--pip-boy-green); font-size: 1.1rem;">{{ label }}</h4>
+                                <div class="row g-0"> {# Use g-0 for no gutter between links #}
+                                    {% for link_data in links %}
+                                        <div class="col-6 col-sm-4 col-md-6 col-lg-4"> {# Distribute links #}
+                                            <a href="{{ link_data.url }}" class="text-white-50 small d-block" style="padding: 2px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ link_data.text }}</a>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                                {% if links|length >= 50 %} {# Use >= 50 to indicate full or exceeding capacity #}
+                                    <p class="small text-warning mt-2 mb-0">此分类项目可能过多，请滚动页面或点击查看。</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
     <hr class="my-4" style="border-color: var(--pip-boy-green);" />
 
     <div class="text-center">
